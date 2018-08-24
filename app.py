@@ -14,7 +14,7 @@ def f_home():
 
 @app.route('/')
 def f_root():
-    return 'Hello, World!'
+    return 'Hello, World!\n This container hostname is: {}'.format(os.environ['HOSTNAME'])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=8080,debug=True)
