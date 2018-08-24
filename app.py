@@ -1,5 +1,4 @@
 from flask import *
-from flask.ext.api import status
 import requests, os
 
 app = Flask(__name__)
