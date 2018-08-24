@@ -150,16 +150,18 @@ node {
         sh "curl -s http://flask-dev:8080/health"
         sh "curl -s http://flask-dev-demo-jenkins.apps.demo.li9.com/ | grep Hello"
     }
-}
-
-stage('Promote to Prod') {
-    input message: "Approve Promotion to Prod?", ok: "Promote"
-    openshift.withCluster() {
-        openshift.withProject() {
-            openshift.startBuild("flask-prod").logs('-f')
-        }       
+    stage('Approve') {
+        input message: "Approve Promotion to Prod?", ok: "Promote"
+    }
+    stage('Prod') {
+        openshift.withCluster() {
+            openshift.withProject() {
+                openshift.startBuild("flask-prod").logs('-f')
+            }       
+        }
     }
 }
+
 
 
 ```
