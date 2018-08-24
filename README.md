@@ -41,10 +41,10 @@ Add a whitespace and push the changes to see if webhook worked properly.
 In this scenario we are going to Create Jenkins pipeline integrated with Openshift.
 
 ### Procedure
-Create a new app called flask2 using the same git repo. 
+Create a new app called flask-dev using the same git repo. 
 Navigate to -> Add to Project -> Browse Catalog -> Languages -> python -> python
 ```
-App name: flask2
+App name: flask-dev
 Repository: https://github.com/flashdumper/openshift-flask.git
 ```
 Press create.
@@ -72,7 +72,7 @@ spec:
                 script {
                   openshift.withCluster() {
                     openshift.withProject() {
-                      openshift.startBuild("flask2").logs('-f')
+                      openshift.startBuild("flask-dev").logs('-f')
                     }
                   }
                 }
@@ -80,8 +80,8 @@ spec:
             }
             stage('Test') {
               steps {
-                sh "curl -s -X GET http://flask2:8080/health"
-                sh "curl -s http://flask2-demo-jenkins.apps.demo.li9.com/ | grep Hello"
+                sh "curl -s -X GET http://flask-dev:8080/health"
+                sh "curl -s http://flask-dev-demo-jenkins.apps.demo.li9.com/ | grep Hello"
               }
             }
           }
@@ -95,14 +95,14 @@ node {
     stage('Build') {
             openshift.withCluster() {
                 openshift.withProject() {
-                    openshift.startBuild("flask2").logs('-f')
+                    openshift.startBuild("flask-dev").logs('-f')
                 }       
             }
         }
     stage('Test') {
         sleep 5
-        sh "curl -s http://flask2:8080/health"
-        sh "curl -s http://flask2-demo-jenkins.apps.demo.li9.com/ | grep Hello"
+        sh "curl -s http://flask-dev:8080/health"
+        sh "curl -s http://flask-dev-demo-jenkins.apps.demo.li9.com/ | grep Hello"
     }
 }
 ```
@@ -114,19 +114,56 @@ Navigate to Build -> Pipelines -> Start Pipeline
 You can check logs by clicking on **View Log**. 
 Use your Openshift credentials to Authenticate on the system.
 
+Now we need to integrate Jenkins with Github. You need to do the following:
+- In Jenkins job, allow the job to be triggered remotely, and set token
+- Go to user settings and derive user API token.
+- Go back to Github and add another webhook using the following link structure https://developer-admin:{USER_TOKEN}@jenkins-demo-jenkins.apps.demo.li9.com/job/demo-jenkins/job/demo-jenkins-flask-pipeline/build?token={JOB_TOKEN}
+
+Once you add webhook it should trigger Jenkins job.
+
 ## Secnario 2 - Python APP - Jenkins Promote to Prod
 
 We are going to use our scenario from the last time and implement Blue/Green application deployment with Manual approval.
 
 ### Procedure
-Create a new app called flask2 using the same git repo. 
+Create a new app called flask-prod using the same git repo. 
 Navigate to -> Add to Project -> Browse Catalog -> Languages -> python -> python
 ```
-App name: flask3
+App name: flask-prod
 Repository: https://github.com/flashdumper/openshift-flask.git
 ```
 Press create.
- 
+
+Now we need to update our job.
+
+```
+node {
+    stage('Build') {
+            openshift.withCluster() {
+                openshift.withProject() {
+                    openshift.startBuild("flask-dev").logs('-f')
+                }       
+            }
+        }
+    stage('Test') {
+        sleep 5
+        sh "curl -s http://flask-dev:8080/health"
+        sh "curl -s http://flask-dev-demo-jenkins.apps.demo.li9.com/ | grep Hello"
+    }
+}
+
+stage('Promote to Prod') {
+    input message: "Approve Promotion to Prod?", ok: "Promote"
+    openshift.withCluster() {
+        openshift.withProject() {
+            openshift.startBuild("flask-prod").logs('-f')
+        }       
+    }
+}
+
+
+```
+
 
 
 
