@@ -2,4 +2,5 @@
 # Usage: pip3 install -r requirements.txt
 
 Flask
-requests
+pycodestyle
+pylint

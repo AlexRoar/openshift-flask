@@ -1,21 +1,41 @@
-from flask import *
-import requests, os
+"""
+Importing os and Flask modules
+"""
+import os
+from flask import Flask
 
-app = Flask(__name__)
-# app.secret_key = 'secret_key'
+APP = Flask(__name__)
+# APP.secret_key = 'secret_key'
 
-@app.route('/health')
+
+@APP.route('/health')
 def f_health():
+    """
+    Health Check for the Flask app
+    """
     return 'OK'
 
-# @app.route('/home')
+# @APP.route('/home')
 # def f_home():
 #     return '<h1>Hello, Earth!</h1>'
 
-@app.route('/')
+
+@APP.route('/')
 def f_root():
-    # return '<h1>Hello, World!</h1> <p> This container hostname is: {}</p>'.format(os.environ['HOSTNAME'])
-    return '<h1>Hello, World!</h1> <p> We are in <b>{}</b></p> <p> This container hostname is: {}</p>'.format(os.environ['STAGE'],os.environ['HOSTNAME'])
+    """
+    Welcome page
+    """
+
+    return """
+    <h1>Hello, World!</h1>
+    <p> This container hostname is: {}</p>
+    """.format(os.environ['HOSTNAME'])
+    # return """
+    # <h1>Hello, World!</h1>
+    # <p> We are in <b>{}</b></p>
+    # <p> This container hostname is: {}</p>
+    # """.format(os.environ['STAGE'],os.environ['HOSTNAME'])
+
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0',port=8080,debug=True)
+    APP.run(host='0.0.0.0', port=8080, debug=True)

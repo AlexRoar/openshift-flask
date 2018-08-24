@@ -62,6 +62,7 @@ metadata:
   name: flask-pipeline
 spec:
   strategy:
+    type: JenkinsPipeline
     jenkinsPipelineStrategy:
       jenkinsfile: |-
         pipeline {
@@ -86,25 +87,33 @@ spec:
             }
           }
         }
-    type: JenkinsPipeline
 ```
 
 **Scripted Pipeline:**
 ```
-node {
-    stage('Build') {
-            openshift.withCluster() {
-                openshift.withProject() {
-                    openshift.startBuild("flask-dev").logs('-f')
-                }       
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: flask-pipeline
+spec:
+  strategy:
+    type: JenkinsPipeline
+    jenkinsPipelineStrategy:
+      jenkinsfile: |-
+        node {
+            stage('Build') {
+                    openshift.withCluster() {
+                        openshift.withProject() {
+                            openshift.startBuild("flask-dev").logs('-f')
+                        }       
+                    }
+                }
+            stage('Test') {
+                sleep 5
+                sh "curl -s http://flask-dev:8080/health"
+                sh "curl -s http://flask-dev-demo-jenkins.apps.demo.li9.com/ | grep Hello"
             }
         }
-    stage('Test') {
-        sleep 5
-        sh "curl -s http://flask-dev:8080/health"
-        sh "curl -s http://flask-dev-demo-jenkins.apps.demo.li9.com/ | grep Hello"
-    }
-}
 ```
 
 We like using Scripted pipelines because of its simplicity.
@@ -121,9 +130,9 @@ Now we need to integrate Jenkins with Github. You need to do the following:
 
 Once you add webhook it should trigger Jenkins job.
 
-## Secnario 2 - Python APP - Jenkins Promote to Prod
+## Secnario 3 - Python APP - Jenkins Promote to Prod
 
-We are going to use our scenario from the last time and implement Blue/Green application deployment with Manual approval.
+We are going to use our previous scenario and implement Blue/Green application deployment with Manual approval.
 
 ### Procedure
 Create a new app called flask-prod using the same git repo. 
@@ -164,10 +173,91 @@ node {
 
 ```
 
+Push some new changes to the Github repo and see that both Flask1 and Jenkins pipeline are triggered. If Jenkins Build and Test stages to 
 
 
+## Secnario 4 - Python APP - Jenkins Promote to Prod with Environment Variables
 
-Some Documentation:
+We are going to use previous scenario and add environment variables.
+
+### Procedure
+
+Go to builds -> Build -> [flask1,flask-dev,flask-prod] -> Environment
+- Add STAGE variables with [Demo, Development, Production] values respectively.
+- Trigger webhooks by pushing the change to Github.
+
+
+## Secnario 5 - Python APP - A/B deployments
+We are going to use previous scenario and create a new route to show A/B type of deployments that splits traffic between **flask-dev** and **flask-prod** in 50/50 proportion.
+
+### Procedure
+
+Navigate to Applications -> Routes -> Create Route.
+- Name: flask-ab
+- Service: flask-dev
+- Split across multiple services [x]
+- Service: flask-prod
+- Service weight: 50/50
+Finally press, **Create**.
+
+
+Test out that half of the requests are going to container in flask-dev and other half to flask-prod.
+```
+$ curl http://flask-ab-demo-jenkins.apps.demo.li9.com/
+... We are in <b>Production</b> ...
+$ curl http://flask-ab-demo-jenkins.apps.demo.li9.com/
+... We are in <b>Development</b> ...
+flask-dev-5-7nblp</p
+$ curl http://flask-ab-demo-jenkins.apps.demo.li9.com/
+... We are in <b>Production</b> ...
+flask-prod-3-qww6t</p
+$ curl http://flask-ab-demo-jenkins.apps.demo.li9.com/
+... We are in <b>Development</b> ...
+```
+
+
+## Secnario 6 - Python APP - Running Integration tests on a separate Jenkins Slave
+
+This scenarios show how to use node labels and custom jenkins slaves to execute code dependent commands.
+
+### TODO
+[Adding Slaves](http://guides-ocp-workshop.apps.vegas.openshiftworkshop.com/workshop/devops/lab/devops-custom-slave)
+
+node (label : 'master') {
+    stage('Checkout') {
+        git url: 'https://github.com/flashdumper/openshift-flask.git'
+    }
+    stage('Syntax') {
+        echo "Code Syntax Check"
+       // sh pylint app.py
+       // sh pycodestyle app.py
+    }
+    stage('Build') {
+            openshift.withCluster() {
+                openshift.withProject() {
+                    openshift.startBuild("flask-dev").logs('-f')
+                }       
+            }
+        }
+    stage('Test') {
+        sleep 5
+        sh "curl -s http://flask-dev:8080/health"
+        sh "curl -s http://flask-dev-demo-jenkins.apps.demo.li9.com/ | grep Hello"
+    }
+    stage('Approve') {
+        input message: "Approve Promotion to Prod?", ok: "Promote"
+    }
+    stage('Prod') {
+        openshift.withCluster() {
+            openshift.withProject() {
+                openshift.startBuild("flask-prod").logs('-f')
+            }       
+        }
+    }
+}
+
+
+## Documentation:
 [Openshift pipelines](https://docs.openshift.com/container-platform/3.9/dev_guide/dev_tutorials/openshift_pipeline.html)
 [Openshift Jenkins Plugin](https://github.com/openshift/jenkins-client-plugin#configuring-an-openshift-cluster)
 
