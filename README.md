@@ -11,7 +11,7 @@ In this Scenario we are going to create an application in OpenShift from Git.
 
 ### Procedure
 
-Login via web console and create a new project named **demo-jenkins**
+Login via web console and create a new project named **project1**
 create a new app by browsing Languages -> python -> python
 ```
 App name: flask1 
@@ -82,7 +82,7 @@ spec:
             stage('Test') {
               steps {
                 sh "curl -s -X GET http://flask-dev:8080/health"
-                sh "curl -s http://flask-dev-demo-jenkins.apps.demo.li9.com/ | grep Hello"
+                sh "curl -s http://flask-dev-project1.apps.demo.li9.com/ | grep Hello"
               }
             }
           }
@@ -111,7 +111,7 @@ spec:
             stage('Test') {
                 sleep 5
                 sh "curl -s http://flask-dev:8080/health"
-                sh "curl -s http://flask-dev-demo-jenkins.apps.demo.li9.com/ | grep Hello"
+                sh "curl -s http://flask-dev-project1.apps.demo.li9.com/ | grep Hello"
             }
         }
 ```
@@ -126,7 +126,7 @@ Use your Openshift credentials to Authenticate on the system.
 Now we need to integrate Jenkins with Github. You need to do the following:
 - In Jenkins job, allow the job to be triggered remotely, and set token
 - Go to user settings and derive user API token.
-- Go back to Github and add another webhook using the following link structure https://developer-admin:{USER_TOKEN}@jenkins-demo-jenkins.apps.demo.li9.com/job/demo-jenkins/job/demo-jenkins-flask-pipeline/build?token={JOB_TOKEN}
+- Go back to Github and add another webhook using the following link structure https://developer-admin:{USER_TOKEN}@jenkins-project1.apps.demo.li9.com/job/project1/job/project1-flask-pipeline/build?token={JOB_TOKEN}
 
 Once you add webhook it should trigger Jenkins job.
 
@@ -157,7 +157,7 @@ node {
     stage('Test') {
         sleep 5
         sh "curl -s http://flask-dev:8080/health"
-        sh "curl -s http://flask-dev-demo-jenkins.apps.demo.li9.com/ | grep Hello"
+        sh "curl -s http://flask-dev-project1.apps.demo.li9.com/ | grep Hello"
     }
     stage('Approve') {
         input message: "Approve Promotion to Prod?", ok: "Promote"
@@ -203,15 +203,15 @@ Finally press, **Create**.
 
 Test out that half of the requests are going to container in flask-dev and other half to flask-prod.
 ```
-$ curl http://flask-ab-demo-jenkins.apps.demo.li9.com/
+$ curl http://flask-ab-project1.apps.demo.li9.com/
 ... We are in <b>Production</b> ...
-$ curl http://flask-ab-demo-jenkins.apps.demo.li9.com/
+$ curl http://flask-ab-project1.apps.demo.li9.com/
 ... We are in <b>Development</b> ...
 flask-dev-5-7nblp</p
-$ curl http://flask-ab-demo-jenkins.apps.demo.li9.com/
+$ curl http://flask-ab-project1.apps.demo.li9.com/
 ... We are in <b>Production</b> ...
 flask-prod-3-qww6t</p
-$ curl http://flask-ab-demo-jenkins.apps.demo.li9.com/
+$ curl http://flask-ab-project1.apps.demo.li9.com/
 ... We are in <b>Development</b> ...
 ```
 
@@ -242,7 +242,7 @@ node (label : 'master') {
     stage('Test') {
         sleep 5
         sh "curl -s http://flask-dev:8080/health"
-        sh "curl -s http://flask-dev-demo-jenkins.apps.demo.li9.com/ | grep Hello"
+        sh "curl -s http://flask-dev-project1.apps.demo.li9.com/ | grep Hello"
     }
     stage('Approve') {
         input message: "Approve Promotion to Prod?", ok: "Promote"
