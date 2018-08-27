@@ -31,10 +31,17 @@ Once this is done to go -> settings -> hooks -> Add webhook
 - SSL Verification: Disabled
 - Just the push events
 - Active [x]
+- 
 Press Add Webhook.
 
-Now, it's time to test it out. 
+Now, it's time to test it out.
+
 Add a whitespace and push the changes to see if webhook worked properly.
+
+```
+echo " " >> README.md
+git add README.md
+```
 
 ## Secnario 2 - Python APP - Jenkins Pipelines
 
@@ -220,6 +227,8 @@ $ curl http://flask-ab-project1.apps.demo.li9.com/
 
 This scenarios show how to use node labels and custom jenkins slaves to execute code dependent commands.
 
+We are going to build a custom Docker image to prepare for pylint and pycodestyle syntax checking.
+
 ### TODO
 [Adding Slaves](http://guides-ocp-workshop.apps.vegas.openshiftworkshop.com/workshop/devops/lab/devops-custom-slave)
 
@@ -255,6 +264,77 @@ node (label : 'master') {
         }
     }
 }
+
+## Secnario 8 - Python APP - HTTP vs HTTPS
+
+In this Scenario we are going to secure the route using HTTPS and explain how 3 different types work.
+
+
+
+Edge: - works similar to SSL offloading where Openshift router terminates HTTPS session and then creates http session with the container
+
+```
+           ---Session1---                ---Session2---
+End Client ----https---- Openshift Router ----http---- Application
+```
+
+Re-encrypt: The difference between Edge and Re-encrypt that re-encrypt creates second session to the container is secured as well.
+```
+           ---Session1---                ---Session2---
+End Client ----https---- Openshift Router ----https---- Application
+```
+
+Pass Through: End to End secure communication between end client and Application. AKA two-way authentication.  
+```
+          --------------Session1---------------
+End Client --https-- Openshift Router --http-- Application
+```
+
+Let's check how it all works.
+
+### Edge 
+Create a new project: 
+project1 -> View All projects -> Create project:
+- Name: project2
+- Press, **Create**.
+- Click on project2
+
+Add to Project -> Deploy image -> centos/httpd-24-centos7
+Create a secure route:
+Navigate to Applications -> Routes -> Create Route.
+- Name: secure-edge
+- Service: httpd-24-cenos7
+- Port: 8080 -> 8080
+- Secure route [x]
+- TLS Termination: Edge
+- Press, **Create**.
+- Open the link that appears in the menu. In our case - https://secure-edge-project2.apps.demo.li9.com/
+
+You should see Apache Test Page and website to be secure and verified.
+
+### Edge 
+Navigate to Applications -> Routes -> Create Route.
+- Name: secure-passthrough
+- Service: httpd-24-cenos7
+- Port: 8443 -> 8443
+- Secure route [x]
+- TLS Termination: Passthrough
+- Press, **Create**.
+- Open the link that appears in the menu. In our case - https://secure-passthrough-project2.apps.demo.li9.com/
+
+When you open the page it should warn you that connection is not secure. It happens because we have self-signed certificates running inside the container. 
+
+We can definitely fix this by creating a new Container with proper certificates.
+
+### TODO
+Create a http pod with HTTPS and try out Passthrough and re-encrypt options for SSL termination.
+
+
+
+
+
+
+
 
 
 ## Documentation:
