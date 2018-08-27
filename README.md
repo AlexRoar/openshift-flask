@@ -137,6 +137,36 @@ Now we need to integrate Jenkins with Github. You need to do the following:
 
 Once you add webhook it should trigger Jenkins job.
 
+
+## Scenario 2a - Jenkinsfile from Git
+
+In this scenario we are going to Create Jenkins pipeline downoaded from Git.
+
+### Procedure
+
+Create a pipeline using web console -> "Add to project" -> Import YAML/JSON.
+
+
+```
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: flask-pipeline-git
+spec:
+  strategy:
+    type: JenkinsPipeline
+    jenkinsPipelineStrategy:
+      jenkinsfilePath: Jenkinsfile
+  source:
+    git:
+      uri: "https://github.com/flashdumper/openshift-flask.git"
+      ref: master
+```
+
+Navigate to Build -> Pipelines and start Pipeline called "flask-pipeline-git"
+That should download Jenkinsfile instruction
+
+
 ## Secnario 3 - Python APP - Jenkins Promote to Prod
 
 We are going to use our previous scenario and implement Blue/Green application deployment with Manual approval.
