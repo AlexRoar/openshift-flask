@@ -3,13 +3,13 @@ pipeline {
     stages {
     stage('Build') {
         steps {
-        script {
-            openshift.withCluster() {
-                openshift.withProject() {
-                    openshift.startBuild("flask-dev").logs('-f')
+            script {
+                openshift.withCluster() {
+                    openshift.withProject() {
+                        openshift.startBuild("flask-dev").logs('-f')
+                    }
                 }
             }
-        }
         }
     }
     stage('Test') {

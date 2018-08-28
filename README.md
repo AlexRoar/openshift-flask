@@ -14,12 +14,12 @@ In this Scenario we are going to create an application in OpenShift from Git.
 Login via web console and create a new project named **project1**
 create a new app by browsing Languages -> python -> python
 ```
-App name: flask1 
+App name: flask-demo 
 Repository: https://github.com/flashdumper/openshift-flask.git
 ```
 Press create.
 
-Navigate to Builds -> Builds -> flask1 -> Configuration.
+Navigate to Builds -> Builds -> flask-demo -> Configuration.
 
 Copy geenric Web Hook.
 
@@ -210,7 +210,7 @@ node {
 
 ```
 
-Push some new changes to the Github repo and see that both Flask1 and Jenkins pipeline are triggered. If Jenkins Build and Test stages to 
+Push some new changes to the Github repo and see that both flask-demo and Jenkins pipeline are triggered. If Jenkins Build and Test stages to 
 
 
 ## Secnario 4 - Python APP - Jenkins Promote to Prod with Environment Variables
@@ -219,7 +219,7 @@ We are going to use previous scenario and add environment variables.
 
 ### Procedure
 
-Go to builds -> Build -> [flask1,flask-dev,flask-prod] -> Environment
+Go to builds -> Build -> [flask-demo,flask-dev,flask-prod] -> Environment
 - Add STAGE variables with [Demo, Development, Production] values respectively.
 - Trigger webhooks by pushing the change to Github.
 
@@ -259,9 +259,13 @@ This scenarios show how to use node labels and custom jenkins slaves to execute 
 
 We are going to build a custom Docker image to prepare for pylint and pycodestyle syntax checking.
 
+### Procedure
+
+
 ### TODO
 [Adding Slaves](http://guides-ocp-workshop.apps.vegas.openshiftworkshop.com/workshop/devops/lab/devops-custom-slave)
 
+```
 node (label : 'master') {
     stage('Checkout') {
         git url: 'https://github.com/flashdumper/openshift-flask.git'
@@ -294,8 +298,9 @@ node (label : 'master') {
         }
     }
 }
+```
 
-## Secnario 8 - Python APP - HTTP vs HTTPS
+## Secnario 7 - Python APP - HTTP vs HTTPS
 
 In this Scenario we are going to secure the route using HTTPS and explain how 3 different types work.
 
@@ -342,7 +347,7 @@ Navigate to Applications -> Routes -> Create Route.
 
 You should see Apache Test Page and website to be secure and verified.
 
-### Edge 
+### Paththrough 
 Navigate to Applications -> Routes -> Create Route.
 - Name: secure-passthrough
 - Service: httpd-24-cenos7
@@ -357,22 +362,76 @@ When you open the page it should warn you that connection is not secure. It happ
 We can definitely fix this by creating a new Container with proper certificates.
 
 ### TODO
-Create a http pod with HTTPS and try out Passthrough and re-encrypt options for SSL termination.
+Demo for re-encrypt.
+
+
+
+## Secnario 8 - Python APP - HTTP vs HTTPS
+
+In this Scenario we are going to secure the route using HTTPS and explain how 3 different types work.
+
+
+
+### Procedure
+
+TODO:
+
+Enable autoscaler: 
+- Min pods: 2 
+- Max pods: 5
+- Cupu req: 15%
+
+Reqourse limits: 
+- Limits: 200mcore, 100mib
+
+Healthchecks:
+- Path: /health
+- Delay: 10s
+- Timeout: 1s
+
+Once Auto-scaling works, You can generate some traffic your favourite benchmarking tool like ab or wrk:
+- wrk -c 2000 -d 100s -t 500 https://flask-demo-project1.apps.demo.li9.com/
+- ab -n 100000 -c 1000 https://flask-demo-project1.apps.demo.li9.com/
+- wait for a few minutes to see that amount of pods are increasing
+
+
+## Secnario 9 - Python APP - S2I builder
+
+In this scenario we are going to show you how to use S2I proccess, build a new Docker image and prepare to be running our flask application.
+
+This is a high level overview of this secnario:
+1. Find, pull, and scan initial Docker image. 
+2. Create .s2i/bin folder with all the proper
+3. Build a new images based of the initial one 
+4. 
+
+
+### Procedure 
+
+## TODO
+
+On master1 find a proper image in the redhat registry and scan for vulnerabilities.
+```
+docker search registry.access.redhat.com:443//s2i-core-rhel7
+atomic scan registry.access.redhat.com:443//s2i-core-rhel7
+```
+
+Image is fine, we can proceed with creating our own image 
+Pull and run this 
+```
+docker run  registry.access.redhat.com:443//s2i-core-rhel7
+```
 
 
 
 
 
 
-
-
-
-## Documentation:
+<!-- ## Documentation:
 [Openshift pipelines](https://docs.openshift.com/container-platform/3.9/dev_guide/dev_tutorials/openshift_pipeline.html)
 [Openshift Jenkins Plugin](https://github.com/openshift/jenkins-client-plugin#configuring-an-openshift-cluster)
 
-[OpenShift V3 Plugin for Jenkins](https://github.com/openshift/jenkins-plugin#common-aspects-across-the-rest-based-functions-build-steps-scm-post-build-actions)
-
+[OpenShift V3 Plugin for Jenkins](https://github.com/openshift/jenkins-plugin#common-aspects-across-the-rest-based-functions-build-steps-scm-post-build-actions) -->
 
 
 
