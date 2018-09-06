@@ -15,7 +15,7 @@ pipeline {
     stage('Test') {
         steps {
         sh "curl -s -X GET http://flask-dev:8080/health"
-        sh "curl -s http://flask-dev-project1.apps.demo.li9.com/ | grep Hello"
+        sh "curl -s http://flask-dev-project3.apps.demo.li9.com/ | grep Hello"
         }
     }
     }
