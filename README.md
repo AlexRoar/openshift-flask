@@ -132,7 +132,6 @@ Now we need to integrate Jenkins with Github. You need to do the following:
 - Go to user settings and derive user API token.
 - Go back to Github and add another webhook using the following link structure https://developer-admin:{USER_TOKEN}@jenkins-project1.apps.demo.li9.com/job/project1/job/project1-flask-pipeline/build?token={JOB_TOKEN}
 
-https://developer-admin:0cea8ce75cd01fc4fca2ca2347dfd28c@jenkins-project3.apps.demo.li9.com/job/project3/job/project3-flask-pipeline/build?token=supersecret
 
 Once you add webhook it should trigger Jenkins job.
 
@@ -207,6 +206,8 @@ node {
 }
 
 ```
+
+
 
 Push some new changes to the Github repo and see that both flask-demo and Jenkins pipeline are triggered. If Jenkins Build and Test stages to 
 
@@ -309,7 +310,9 @@ Add new Pod Template:
 Then Add container -> Container Template:
 - Name: jnlp
 - Docker image: docker.io/flashdumper/jslave-python
+- Always pull image: Unchecked []
 - Working Directory: /tmp
+- Command to run: 
 - Arguments to pass to the command: ${computer.jnlpmac} ${computer.name}
 - Allocate pseudo-TTY: Checked [x]
 - Timeout in seconds for Jenkins connection: 100
@@ -366,6 +369,68 @@ spec:
 Start new pipeline by navigating to -> Build -> Pipeline -> pipeline-unit -> Start pipeline 
 You can log into Jenkins and Check that jenkins slave nodes are being dynamically created.
 Also note that different stages are executed on differnent jenkins nodes.
+
+
+## Scenario 6a - Pipeline with Parallel tasks 
+
+This scenario extends the old 
+
+### Procedure
+
+Add to Project -> Import from JSON/YAML
+```
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: pipeline-unit
+spec:
+  strategy:
+    type: JenkinsPipeline
+    jenkinsPipelineStrategy:
+      jenkinsfile: |-
+        node (label : 'python') {
+            stage('Checkout') {
+                git url: 'https://github.com/flashdumper/openshift-flask.git'
+            }
+            stage("Parallel Tasks") {
+                parallel(
+                    "Test1": {
+                        echo "Code Syntax Check"
+                    },
+                    "Test2": {
+                        sh "pylint app.py"
+                    },
+                    "Test3": {
+                        sh "pycodestyle app.py"
+                    }
+                )
+            }
+        }
+        node (label : 'master') {
+            stage('Build') {
+                    openshift.withCluster() {
+                        openshift.withProject() {
+                            openshift.startBuild("flask-dev").logs('-f')
+                        }       
+                    }
+                }
+            stage('End-to-End') {
+                sleep 5
+                sh "curl -s http://flask-dev:8080/health"
+                sh "curl -s http://flask-dev-project1.apps.demo.li9.com/ | grep Hello"
+            }
+            stage('Approve') {
+                input message: "Approve Promotion to Prod?", ok: "Promote"
+            }
+            stage('Prod') {
+                openshift.withCluster() {
+                    openshift.withProject() {
+                        openshift.tag("project1/flask-dev:latest", "project1/flask-prod:prod")
+                    }       
+                }
+            }
+        }
+```
 
 
 
@@ -507,9 +572,9 @@ When the application is deployed. Create a route navigating to Applications -> R
 Internal OpenShift registry route uses re-encrypt.
 
 
-## Secnario 8 - Python APP - HTTP vs HTTPS
+## Secnario 8 - Python APP - Autoscaling
 
-In this Scenario we are going to secure the route using HTTPS and explain how 3 different types work.
+In this Scenario we are going to secure the route using Autoscaling and explain how 3 different types work.
 
 ### Procedure
 
@@ -534,39 +599,72 @@ Once Auto-scaling works, You can generate some traffic your favourite benchmarki
 - wait for a few minutes to see that amount of pods are increasing
 
 
-## Secnario 9 - Python APP - from Dockerfile
+## Secnario 9 - Python APP - App from Dockerfile
 
 In this scenarios we are going to build OpenShift flask application from Dockerfile.
 
 ### High Level Overview:
 
 - Create a Dockerfile with all the required packages and instrcutions 
-- Run app with **oc new-app** command and verify that it works
-
-### TODO
-
+- Run app with **oc new-app** command to create application 
+- expose application externally with **oc expose** command  
 
 
-## Secnario 10 - Python APP - S2I method
+### Procedure
 
-In this scenario we are going to show you how to use S2I proccess, build a new Docker image and prepare to be running our flask application.
+In order to create an application from Dockerfile and run it in OpenShift, first thing we need to do is write a new Dockerfile. You can either create Dockerfile using instructions below, or download from [here](https://github.com/flashdumper/openshift-dockerfile.git). All the other files are also located in that Git repository.
+
+```
+$ cat Dockerfile
+FROM centos
+
+COPY requirements.txt /tmp/
+COPY app.py /opt/
+
+RUN yum install -y epel-release &&\
+    yum install -y python2-pip python34-pip python34 &&\
+    pip install --upgrade pip &&\
+    pip3 install -r /tmp/requirements.txt &&\
+    chown -R 1001:0 /opt/ &&\
+    chmod -R g=u /opt/
+
+USER 1001
+
+WORKDIR /opt/
+CMD ["python3","app.py"]
+```
+
+Finally, use Openshift oc CLI and run the following command:
+```
+oc new-app https://github.com/flashdumper/openshift-dockerfile.git --name dockerfile
+```
+Once application is up and running we need to expose it expternally using **oc expose** commands:
+```
+oc expose dc/dockerfile --port 8080
+oc expose svc --hostname dockerfile.apps.lab.atap.xyz dockerfile
+```
+
+Open your browser and navigate to http://dockerfile.apps.lab.atap.xyz/ or run **curl http://dockerfile.apps.lab.atap.xyz/** command
+
+## Secnario 10 - Python APP - Create S2I image
+
+In this scenario we are going to show you how to create and use S2I image to run get flask application up and running.
 
 ### High level overview of this secnario:
-1. Find, pull, and scan initial Docker image.  (docker search, pull, atomic scan)
-2. Create .s2i folder with proper structure settings (docker build)
+1. Find, pull and scan initial Docker image. 
+2. Create .s2i folder with proper structure settings
     - s2i create backbone dirs (s2i create)
     - provide assemble and run scripts
-3. Build a new s2i images based of the initial one (docker build)
+3. Build a new s2i images based of the initial one
     - Create Dockerfile
-    - COPY ./.s2i/bin -> /usr/libexec/s2i
-    - CMD ["usage"]]
+    - COPY ./.s2i/bin /usr/libexec/s2i
+    - CMD ["usage"]
 4. Test and verify s2i image  (s2i build)
 5. Push s2i image to registry (docker tag, docker push)
 6. Push s2i image to imagestream (oc import-image)
 7. Run code app with s2i image (oc new-app imagesteam~URL)
 
 When **oc new-app** is executed, imagestream is run and code pulled inside the working directory. 
-
 
 ### Modifying s2i builds
 Create .s2i/bin dir in git repo
@@ -579,12 +677,29 @@ Source code with installation instructions located on [Github](https://github.co
 
 ### Procedure 
 
+Create S2I template using **s2i create** command
+
+```
+s2i create centos centos
+cd centos
+docker build -t centos-s2i .
+# s2i build src centos-s2i centos-s2i
+s2i build test/test-app centos-s2i centos-test
+docker run -d centos-test
+
+docker tag centos-s2i registry.demo.li9.com:5000/centos-s2i
+docker push registry.demo.li9.com:5000/centos-s2i
+oc import-image centos-s2i --from registry.demo.li9.com:5000/centos-s2i --confirm --insecure=true
+oc new-app --name centos-s2i centos-s2i~git_repository
+
+```
+
+
 On master1 find a proper image in the redhat registry and scan for vulnerabilities.
 ```
 docker search registry.access.redhat.com:443/s2i-core-rhel7
 atomic scan registry.access.redhat.com:443/s2i-core-rhel7
 ```
-
 
 Image is fine, we can proceed with creating our own image 
 Pull and run this 
@@ -592,22 +707,13 @@ Pull and run this
 docker run registry.access.redhat.com:443/s2i-core-rhel7
 ```
 
-
-## Secnario 9 - Python APP - Jenkins 
-
-
-### Requirements 
-
-
-### TODO
-
-
-
-<!-- ## Documentation:
+<!-- 
+## Documentation:
 [Openshift pipelines](https://docs.openshift.com/container-platform/3.9/dev_guide/dev_tutorials/openshift_pipeline.html)
 [Openshift Jenkins Plugin](https://github.com/openshift/jenkins-client-plugin#configuring-an-openshift-cluster)
 
-[OpenShift V3 Plugin for Jenkins](https://github.com/openshift/jenkins-plugin#common-aspects-across-the-rest-based-functions-build-steps-scm-post-build-actions) -->
+[OpenShift V3 Plugin for Jenkins](https://github.com/openshift/jenkins-plugin#common-aspects-across-the-rest-based-functions-build-steps-scm-post-build-actions)
+ -->
 
 
 
