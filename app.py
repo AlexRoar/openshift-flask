@@ -30,11 +30,11 @@ def f_root():
     <h1>Hello, World!</h1>
     <p> This container hostname is: {}</p>
     """.format(os.environ['HOSTNAME'])
-    # return """
-    # <h1>Hello, World!</h1>
-    # <p> We are in <b>{}</b></p>
-    # <p> This container hostname is: {}</p>
-    # """.format(os.environ['STAGE'],os.environ['HOSTNAME'])
+#     return """
+#     <h1>Hello, World!</h1>
+#     <p> We are in <b>{}</b></p>
+#     <p> This container hostname is: {}</p>
+#     """.format(os.environ['STAGE'],os.environ['HOSTNAME'])
 
 
 if __name__ == '__main__':

@@ -8,7 +8,7 @@ You need to have Openshift 3.9 or higher Up and Running.
 
 ## Scenrario 1 - Python APP - Webhooks
 In this Scenario we are going to create an application in OpenShift from Git. 
-
+ 
 ### Procedure
 
 Login via web console and create a new project named **project1**
