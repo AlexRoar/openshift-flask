@@ -34,7 +34,7 @@ def f_root():
     <h1>Hello, World!</h1>
     <p> We are in <b>{}</b></p>
     <p> This container hostname is: {}</p>
-    """.format(os.environ['ENV'],os.environ['HOSTNAME'])
+    """.format(os.environ['ENV2'],os.environ['HOSTNAME'])
 
 
 if __name__ == '__main__':
