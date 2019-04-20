@@ -51,6 +51,7 @@ def getSressWeb(word):
     parts[2] = quote(parts[2], safe=':/?&')
     url = urlunsplit(parts)
 
+
     req = urlrequest.Request(url)
     if len(proxy) > 0:
         req.set_proxy(proxyDict['http'], 'http')
