@@ -12,10 +12,8 @@ from lxml.html import fromstring
 import string
 from urllib import request as urlrequest
 import sqlite3
-
+import os
 ssl.match_hostname = lambda cert, hostname: True
-
-
 
 # For every user:
 #
@@ -66,12 +64,14 @@ choiceValid = [
 
 stress = Blueprint('sress', __name__)
 
-basepath = 'data/data.json'
+__dir__=os.path.dirname(os.path.abspath(__file__))
+basepath = __dir__+'data/data.json'
 try:
-    data = open('stress/data/data.json')
+    data = open(basepath)
 except:
-    data = open('modules_alice/data/stress/data.json', 'r')
-    basepath = 'modules_alice/data/stress/data.json'
+    basepath = __dir__ + '/data/stress/data.json'
+    data = open(basepath)
+
 base = json.loads(data.read())
 data.close()
 
@@ -112,10 +112,10 @@ def handle(req, res):
 
     if req['request']['original_utterance'].lower() == 'stat_31415926':
         res['response']['text'] = 'Просмотров: ' + str(getViews()) + '\n  Нет в БД, но спрашивали:\n'
-        r = connection.execute('SELECT * FROM `not_found` ORDER BY count DESC')
-        r = r.fetchall()
-        for i in r:
-            res['response']['text'] += ', '.join(list(map(str, i))) + '\n'
+        # r = connection.execute('SELECT * FROM `not_found` ORDER BY count DESC')
+        # r = r.fetchall()
+        # for i in r:
+        #     res['response']['text'] += ', '.join(list(map(str, i))) + '\n'
         return res
 
     if user_text.lower() == 'помощь' or user_text.lower() == 'что ты умеешь' or user_text.lower() == 'что ты умеешь?':
@@ -184,7 +184,7 @@ def handle(req, res):
                 "word": user_text.lower(),
                 "sress": web
             })
-            json.dump(base, basepath)
+            json.dump(base, open(basepath, 'w'))
         else:
             res['response']['text'] = 'Не знаю такого слова'
             res['response']['tts'] = 'Не знаю такого сл+ова'
@@ -198,6 +198,7 @@ def handle(req, res):
     sessionStorage[user_id] = session
 
     return res
+
 
 def get_proxies():
     url = 'https://free-proxy-list.net/'
@@ -217,6 +218,7 @@ def genApropr(prox):
     for i in prox:
         out.append({"http": i, "https": i})
     return out
+
 
 def getSressWeb(word):
     # specify the url
