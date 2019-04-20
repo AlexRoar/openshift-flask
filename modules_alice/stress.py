@@ -1027,7 +1027,7 @@ def makeSress(word, i):
 
 
 def notFoundWord(word):
-    pass
+    return
     res = connection.execute('SELECT * FROM `not_found` WHERE `word`="' + word.lower() + '"')
     fetch = res.fetchall()
     if (len(fetch) == 0):
@@ -1041,7 +1041,7 @@ def notFoundWord(word):
 
 
 def statChoice(choice):
-    pass
+    return
     res = connection.execute('SELECT * FROM `words_choice` WHERE `choice`="' + choice + '"')
     fetch = res.fetchall()
     if (len(fetch) == 0):
@@ -1055,7 +1055,7 @@ def statChoice(choice):
 
 
 def addView(name='sress'):
-    pass
+    return
     res = connection.execute('SELECT * FROM `visits_count` WHERE `name`="' + name + '"')
     fetch = res.fetchall()
     if (len(fetch) == 0):
