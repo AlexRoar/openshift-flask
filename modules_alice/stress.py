@@ -12,6 +12,7 @@ from lxml.html import fromstring
 import string
 from urllib import request as urlrequest
 import sqlite3
+import os
 
 ssl.match_hostname = lambda cert, hostname: True
 
@@ -131,12 +132,13 @@ c = connection.cursor()
 
 stress = Blueprint('sress', __name__)
 
-basepath = 'data/data.json'
+__dir__ = os.path.dirname(os.path.abspath(__file__))
+basepath = __dir__+'/stress/data/data.json'
 try:
-    data = open('stress/data/data.json')
+    data = open(basepath)
 except:
-    data = open('modules_alice/data/stress/data.json', 'r')
-    basepath = 'modules_alice/data/stress/data.json'
+    basepath = __dir__ + 'data/stress/data.json'
+    data = open(basepath, 'r', encoding="utf-8")
 base = json.loads(data.read())
 data.close()
 

@@ -6,11 +6,12 @@ from flask import Blueprint, request
 import json
 import logging
 from random import randint
+import os
 
 quotes = Blueprint('quotes', __name__)
 
 # Get quotes base
-base = open('modules_alice/data/quotes/cit.json', 'r')
+base = open(os.path.dirname(os.path.abspath(__file__))+'/data/quotes/cit.json', 'r', encoding="utf-8")
 data = json.loads(base.read())
 base.close()
 

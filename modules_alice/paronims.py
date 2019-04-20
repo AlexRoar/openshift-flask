@@ -2,12 +2,13 @@ from flask import Blueprint, request
 import json
 import logging
 import random
+import os
 
 import sqlite3
 
 paronims = Blueprint('paronims', __name__)
 
-data = open('modules_alice/data/paronims/paronimsNew.json', 'r')
+data = open(os.path.dirname(os.path.abspath(__file__))+'/data/paronims/paronimsNew.json', 'r', encoding="utf-8")
 base = json.loads(data.read())
 data.close()
 
