@@ -13,6 +13,7 @@ import string
 from urllib import request as urlrequest
 import sqlite3
 import os
+
 ssl.match_hostname = lambda cert, hostname: True
 
 # For every user:
@@ -64,8 +65,8 @@ choiceValid = [
 
 stress = Blueprint('sress', __name__)
 
-__dir__=os.path.dirname(os.path.abspath(__file__))
-basepath = __dir__+'data/data.json'
+__dir__ = os.path.dirname(os.path.abspath(__file__))
+basepath = __dir__ + 'data/data.json'
 try:
     data = open(basepath)
 except:
@@ -470,7 +471,9 @@ def notFoundWord(word):
 
 
 def statChoice(choice):
-    req = urlrequest.Request('http://dremov.mcdir.ru/dialogs/db_process.php?action=add_word&choice='+choice)
+    req = urlrequest.Request('http://dremov.mcdir.ru/dialogs/db_process.php',
+                             data={'action': 'add_word', 'choice': +choice},
+                             method='get')
     try:
         data = urllib.request.urlopen(req).read()
         return data
@@ -530,7 +533,8 @@ def randomElem(arr):
 
 
 def alsoAsked(name):
-    req = urlrequest.Request('http://dremov.mcdir.ru/dialogs/db_process.php?action=also&choice='+name)
+    req = urlrequest.Request('http://dremov.mcdir.ru/dialogs/db_process.php', data={'action': 'also', 'choice': +name},
+                             method='get')
     try:
         data = urllib.request.urlopen(req).read()
         return data
