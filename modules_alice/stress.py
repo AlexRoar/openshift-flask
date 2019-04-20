@@ -454,6 +454,7 @@ def makeSress(word, i):
 
 
 def notFoundWord(word):
+    return 0
     res = connection.execute('SELECT * FROM `not_found` WHERE `word`="' + word.lower() + '"')
     fetch = res.fetchall()
     if (len(fetch) == 0):
@@ -467,6 +468,7 @@ def notFoundWord(word):
 
 
 def statChoice(choice):
+    return 0
     res = connection.execute('SELECT * FROM `words_choice` WHERE `choice`="' + choice + '"')
     fetch = res.fetchall()
     if (len(fetch) == 0):
@@ -480,6 +482,7 @@ def statChoice(choice):
 
 
 def addView(name='sress'):
+    return 0
     res = connection.execute('SELECT * FROM `visits_count` WHERE `name`="' + name + '"')
     fetch = res.fetchall()
     if (len(fetch) == 0):
@@ -493,6 +496,7 @@ def addView(name='sress'):
 
 
 def getViews(name='sress'):
+    return 0
     res = connection.execute('SELECT * FROM `visits_count` WHERE `name`="' + name + '"')
     fetch = res.fetchall()
     if (len(fetch) == 0):
@@ -529,6 +533,7 @@ def randomElem(arr):
 
 
 def alsoAsked(name):
+    return 0
     res = connection.execute('SELECT `count` FROM `words_choice` WHERE `choice`="' + name + '"')
     res = res.fetchall()
     s = 0
