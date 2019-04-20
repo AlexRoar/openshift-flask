@@ -59,8 +59,8 @@ choiceValid = [
     "Вот"
 ]
 
-connection = sqlite3.connect('database.db')
-c = connection.cursor()
+# connection = sqlite3.connect('database.db')
+# c = connection.cursor()
 
 # Главный файл навыка
 
