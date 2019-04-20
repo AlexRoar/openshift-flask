@@ -472,7 +472,7 @@ def notFoundWord(word):
 
 def statChoice(choice):
     req = urlrequest.Request('http://dremov.mcdir.ru/dialogs/db_process.php',
-                             data={'action': 'add_word', 'choice': +choice},
+                             data={'action': 'add_word', 'choice': choice},
                              method='get')
     try:
         data = urllib.request.urlopen(req).read()
@@ -533,7 +533,7 @@ def randomElem(arr):
 
 
 def alsoAsked(name):
-    req = urlrequest.Request('http://dremov.mcdir.ru/dialogs/db_process.php', data={'action': 'also', 'choice': +name},
+    req = urlrequest.Request('http://dremov.mcdir.ru/dialogs/db_process.php', data={'action': 'also', 'choice': name},
                              method='get')
     try:
         data = urllib.request.urlopen(req).read()
