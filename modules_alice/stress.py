@@ -470,17 +470,12 @@ def notFoundWord(word):
 
 
 def statChoice(choice):
-    return 0
-    res = connection.execute('SELECT * FROM `words_choice` WHERE `choice`="' + choice + '"')
-    fetch = res.fetchall()
-    if (len(fetch) == 0):
-        connection.execute('INSERT INTO `words_choice` VALUES ("' + choice.lower() + '", "' + choice + '", 1)')
-        connection.commit()
-        return
-    res = fetch[0]
-    count = int(res[-1]) + 1
-    connection.execute("UPDATE `words_choice` SET 'count'=" + str(count) + ' WHERE `choice`="' + choice + '"')
-    connection.commit()
+    req = urlrequest.Request('http://dremov.mcdir.ru/dialogs/db_process.php?action=add_word&choice='+choice)
+    try:
+        data = urllib.request.urlopen(req).read()
+        return data
+    except Exception as e:
+        return 0
 
 
 def addView(name='sress'):
@@ -535,26 +530,9 @@ def randomElem(arr):
 
 
 def alsoAsked(name):
-    return 0
-    res = connection.execute('SELECT `count` FROM `words_choice` WHERE `choice`="' + name + '"')
-    res = res.fetchall()
-    s = 0
-    s_all = 0
-    for i in res:
-        s += int(i[0])
-
-    res_all = connection.execute('SELECT `count` FROM `words_choice` WHERE `group`="' + name.lower() + '"')
-    res_all = res_all.fetchall()
-    for i in res_all:
-        s_all += int(i[0])
-
-    if s == 0:
-        proc = 0
-    else:
-        proc = (s_all * 100) / s
-
-    # proc = 'SELECT count FROM `words_choice` WHERE `group`="' + name.lower() + '"'
-
-    proc = round(float(proc), ndigits=1)
-
-    return proc
+    req = urlrequest.Request('http://dremov.mcdir.ru/dialogs/db_process.php?action=also&choice='+name)
+    try:
+        data = urllib.request.urlopen(req).read()
+        return data
+    except Exception as e:
+        return 0
