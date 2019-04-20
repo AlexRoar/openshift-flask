@@ -135,9 +135,9 @@ stress = Blueprint('sress', __name__)
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 basepath = __dir__+'/stress/data/data.json'
 try:
-    data = open(basepath)
+    data = open(basepath, 'r')
 except:
-    basepath = __dir__ + 'data/stress/data.json'
+    basepath = __dir__ + '/data/stress/data.json'
     data = open(basepath, 'r', encoding="utf-8")
 base = json.loads(data.read())
 data.close()
